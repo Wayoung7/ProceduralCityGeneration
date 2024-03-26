@@ -7,3 +7,18 @@ FetchContent_Declare(
 )
 
 add_subdirectory(sfml)
+
+FetchContent_Declare(
+  imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui
+  GIT_TAG v1.90.4
+)
+
+FetchContent_MakeAvailable(imgui)
+
+FetchContent_Declare(
+  imgui-sfml
+  GIT_REPOSITORY https://github.com/SFML/imgui-sfml
+  GIT_TAG v2.6
+)
+add_subdirectory(imgui-sfml)

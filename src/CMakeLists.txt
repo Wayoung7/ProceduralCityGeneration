@@ -1,2 +1,2 @@
-add_executable(ProceduralCityGeneration main.cpp)
-target_link_libraries(ProceduralCityGeneration PRIVATE sfml-graphics)
+add_executable(ProceduralCityGeneration main.cpp RoadVertex.cpp Generator.cpp RoadNetwork.cpp Renderer.cpp RoadSeg.cpp CityGen.cpp Math.cpp)
+target_link_libraries(ProceduralCityGeneration PRIVATE ImGui-SFML::ImGui-SFML)
