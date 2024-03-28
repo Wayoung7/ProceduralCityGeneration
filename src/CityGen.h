@@ -18,8 +18,15 @@ enum ActionType
 class CityGen
 {
   private:
-    std::vector<RoadSeg *> roads;
+    // std::vector<RoadSeg *> roads;
+    std::map<std::pair<int, int>, std::vector<RoadSeg *>> roads;
     std::list<RoadSeg> queue;
+    int gridCellWidth;
+
+    void addRoad(RoadSeg *road);
+    std::pair<int, int> calCell(const Vec2 &point);
+    std::vector<RoadSeg *> queryNearbyRoads(const Vec2 &point);
+    int roadsCount() const;
 
   public:
     void init();
@@ -42,7 +49,7 @@ class CityGen
     {
         return roads.end();
     }
-    std::vector<RoadSeg *> filterRoads(std::function<bool(RoadSeg *)> func);
+    std::vector<RoadSeg *> filterRoads(std::vector<RoadSeg *> src, std::function<bool(RoadSeg *)> func);
     ~CityGen();
 };
 

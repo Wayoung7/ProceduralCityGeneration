@@ -4,8 +4,51 @@
 #include <chrono>
 #include <iostream>
 
+void CityGen::addRoad(RoadSeg *road)
+{
+    Vec2 mid = (road->getSt() + road->getEd()) / 2.f;
+    roads[calCell(mid)].push_back(road);
+}
+
+std::pair<int, int> CityGen::calCell(const Vec2 &point)
+{
+    return std::pair((int)point.x / gridCellWidth, (int)point.y / gridCellWidth);
+}
+
+std::vector<RoadSeg *> CityGen::queryNearbyRoads(const Vec2 &point)
+{
+    std::vector<RoadSeg *> res;
+    std::pair<int, int> cellIdx = calCell(point);
+    for (int x = cellIdx.first - 1; x <= cellIdx.first + 1; x++)
+    {
+        for (int y = cellIdx.second - 1; y <= cellIdx.second + 1; y++)
+        {
+            auto cell = roads.find(std::make_pair(x, y));
+            if (cell != roads.end())
+            {
+                for (RoadSeg *road : cell->second)
+                {
+                    res.emplace_back(road);
+                }
+            }
+        }
+    }
+    return res;
+}
+
+int CityGen::roadsCount() const
+{
+    int i = 0;
+    for (const auto &cell : roads)
+    {
+        i += cell.second.size();
+    }
+    return i;
+}
+
 void CityGen::init()
 {
+    gridCellWidth = GlobalConfig::getInstance().highwaySegLen * 2;
     const GlobalConfig &cfg = GlobalConfig::getInstance();
     RoadSeg *root = new RoadSeg(Vec2(cfg.windowWidth / 2.f, cfg.windowHeight / 2.f),
                                 Vec2(cfg.windowWidth / 2.f + cfg.highwaySegLen, cfg.windowHeight / 2.f), 0, HighWay);
@@ -17,12 +60,13 @@ void CityGen::init()
     second.addStNeighbor(root);
     queue.emplace_back(first);
     queue.emplace_back(second);
-    roads.emplace_back(root);
+    addRoad(root);
+    // roads.emplace_back(root);
 }
 
 void CityGen::step()
 {
-    if (GlobalData::getInstance().isFinished == false && roads.size() < GlobalConfig::getInstance().segLimit &&
+    if (GlobalData::getInstance().isFinished == false && roadsCount() < GlobalConfig::getInstance().segLimit &&
         queue.empty() == false)
     {
 
@@ -50,10 +94,17 @@ void CityGen::step()
 
 void CityGen::reset()
 {
-    for (RoadSeg *road : roads)
+    for (auto cell : roads)
     {
-        delete road;
+        for (RoadSeg *road : cell.second)
+        {
+            delete road;
+        }
     }
+    // for (RoadSeg *road : roads)
+    // {
+    //     delete road;
+    // }
     roads.clear();
     queue.clear();
     this->init();
@@ -106,13 +157,14 @@ RoadSeg *CityGen::localConstrain(RoadSeg &cur)
     Vec2 mid = (curSt + curEd) / 2.f;
     float curLen = curSt.distance(curEd);
 
-    std::vector<RoadSeg *> others = filterRoads([mid, curLen](RoadSeg *seg) -> bool {
+    std::vector<RoadSeg *> nearbyRoads = queryNearbyRoads(mid);
+    std::vector<RoadSeg *> others = filterRoads(nearbyRoads, [mid, curLen](RoadSeg *seg) -> bool {
         float range = GlobalConfig::getInstance().maxSnapDist + curLen / 2.f;
-        if (std::abs(seg->getSt().x - mid.x) > range + curLen / 2.f ||
-            std::abs(seg->getSt().y - mid.y) > range + curLen / 2.f)
-        {
-            return false;
-        }
+        // if (std::abs(seg->getSt().x - mid.x) > range + curLen / 2.f ||
+        //     std::abs(seg->getSt().y - mid.y) > range + curLen / 2.f)
+        // {
+        //     return false;
+        // }
         return segInCircle(seg->getSt(), seg->getEd(), mid, range);
     });
 
@@ -185,7 +237,8 @@ RoadSeg *CityGen::localConstrain(RoadSeg &cur)
     else
     {
         newSeg = new RoadSeg(cur);
-        roads.push_back(newSeg);
+        // roads.push_back(newSeg);
+        addRoad(newSeg);
     }
     return newSeg;
 }
@@ -229,8 +282,10 @@ RoadSeg *CityGen::splitThroughSeg(Vec2 intersection, RoadSeg &cur, RoadSeg *seg)
     seg->setSt(intersection);
     // roads.push_back(seg);
     RoadSeg *segRemain = new RoadSeg(st, intersection, 0, seg->getType());
-    roads.push_back(segRemain);
-    roads.push_back(newSeg);
+    // roads.push_back(segRemain);
+    // roads.push_back(newSeg);
+    addRoad(segRemain);
+    addRoad(newSeg);
 
     newSeg->setEd(intersection);
     segRemain->addStNeighbors(seg->getStNeighbors());
@@ -278,7 +333,8 @@ RoadSeg *CityGen::handleSnapAction(RoadSeg &cur, RoadSeg *otherSeg, Vec2 point)
         }
     }
     newSeg->setSevered(true);
-    roads.push_back(newSeg);
+    // roads.push_back(newSeg);
+    addRoad(newSeg);
     cur = *newSeg;
     return newSeg;
 }
@@ -387,10 +443,10 @@ std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur)
     return res;
 }
 
-std::vector<RoadSeg *> CityGen::filterRoads(std::function<bool(RoadSeg *)> func)
+std::vector<RoadSeg *> CityGen::filterRoads(std::vector<RoadSeg *> src, std::function<bool(RoadSeg *)> func)
 {
     std::vector<RoadSeg *> res;
-    for (RoadSeg *seg : roads)
+    for (RoadSeg *seg : src)
     {
         if (func(seg))
         {
@@ -402,9 +458,16 @@ std::vector<RoadSeg *> CityGen::filterRoads(std::function<bool(RoadSeg *)> func)
 
 CityGen::~CityGen()
 {
-    for (RoadSeg *seg : roads)
+    // for (RoadSeg *seg : roads)
+    // {
+    //     delete seg;
+    // }
+    for (auto cell : roads)
     {
-        delete seg;
+        for (RoadSeg *road : cell.second)
+        {
+            delete road;
+        }
     }
 }
 

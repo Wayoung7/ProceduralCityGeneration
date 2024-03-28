@@ -17,7 +17,6 @@
 
 int main()
 {
-    auto start = std::chrono::high_resolution_clock::now();
     RNG rng;
     sf::RenderWindow window(
         sf::VideoMode(GlobalConfig::getInstance().windowWidth, GlobalConfig::getInstance().windowHeight),
@@ -56,7 +55,11 @@ int main()
             camera.handleMouseDrag(window);
         }
 
+        auto start = std::chrono::high_resolution_clock::now();
         cg.step();
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        std::cout << std::fixed << elapsed.count() << std::endl;
 
         ImGui::SFML::Update(window, deltaClock.restart());
 
@@ -109,9 +112,6 @@ int main()
             break;
         }
     }
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << std::fixed << elapsed.count() << std::endl;
 
     return 0;
 }
