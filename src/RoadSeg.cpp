@@ -37,7 +37,7 @@ void RoadSeg::addEdNeighbor(RoadSeg *edNeighbor)
     edNeighbors.push_back(edNeighbor);
 }
 
-std::optional<Vec2> RoadSeg::intersectWith(const RoadSeg &other)
+std::optional<Vec2> RoadSeg::intersectWith(const RoadSeg &other) const
 {
     std::optional<Vec2> res;
 

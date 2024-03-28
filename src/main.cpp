@@ -2,49 +2,39 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 
+#include <chrono>
 #include <imgui-SFML.h>
 #include <imgui.h>
+#include <iostream>
 
+#include "Camera.h"
 #include "CityGen.h"
-#include "Generator.h"
 #include "GlobalConfig.h"
 #include "GlobalData.h"
 #include "Math.h"
 #include "Renderer.h"
-#include "RoadNetwork.h"
 #include "RoadSeg.h"
-#include "RoadSegment.h"
 
 int main()
 {
+    auto start = std::chrono::high_resolution_clock::now();
     RNG rng;
-    sf::RenderWindow window(sf::VideoMode(2560, 1440), "ImGui + SFML = <3");
-    // window.setFramerateLimit(60);
-    ImGui::SFML::Init(window);
+    sf::RenderWindow window(
+        sf::VideoMode(GlobalConfig::getInstance().windowWidth, GlobalConfig::getInstance().windowHeight),
+        "Procedural City Generation", sf::Style::Default, sf::ContextSettings(0, 0, 8));
+    if (!ImGui::SFML::Init(window))
+    {
+        std::cerr << "Error: Failed to initialize SFML window" << std::endl;
+        exit(-1);
+    }
 
-    // Init
-    // vector<RoadSegmentProperty> segments;
-    // vector<pair<int, int>> crossings;
-    // vector<WaitingSeg> q = {WaitingSeg(
-    //     0.f, RoadSegmentProperty(pair(640, 360), pair(650, 360), 1))};
-
-    // GlobalConfig::getInstance().maxRoadCross = 4;
-    // GlobalConfig::getInstance().maxSegLen = 30.f;
-    // GlobalConfig::getInstance().minSegLen = 20.f;
-    GlobalConfig::getInstance().segLimit = 8000;
-    GlobalConfig::getInstance().windowWidth = 2560;
-    GlobalConfig::getInstance().windowHeight = 1440;
-
-    // GlobalData::getInstance().m_roadSegs = 0;
-
-    // RoadNetwork rn;
     Renderer renderer;
-    // Generator g;
-    // g.init(rn);
+    Camera camera(window);
     CityGen cg;
     cg.init();
 
     sf::Clock deltaClock;
+    const auto &io = ImGui::GetIO();
     while (window.isOpen() && GlobalData::getInstance().isRunning)
     {
         sf::Event event;
@@ -56,47 +46,72 @@ int main()
             {
                 window.close();
             }
+            else if (event.type == sf::Event::MouseWheelMoved && !io.WantCaptureMouse)
+            {
+                camera.handleZoom(window, event);
+            }
+        }
+        if (!io.WantCaptureMouse)
+        {
+            camera.handleMouseDrag(window);
         }
 
-        // if (rn.verticesCount() < 100)
-        // {
-        //     g.step(rn);
-        // }
         cg.step();
-
-        // // Update
-        // // Pop smallest t
-        // int smallest_idx = 0;
-        // int smallest_t = INT_MAX;
-        // for (int i = 0; i < q.size(); i++) {
-        //     if (q[i].t < smallest_t) {
-        //         smallest_idx = i;
-        //         smallest_t = q[i].t;
-        //     }
-        // }
-        // WaitingSeg cur = q[smallest_idx];
-        // q.erase(q.begin() + smallest_idx);
-
-        // sf::VertexArray a(sf::Lines);
-        // a.append(sf::Vertex(sf::Vector2f(0.f, 0.f)));
-        // a.append(sf::Vertex(sf::Vector2f(500.f, 500.f)));
 
         ImGui::SFML::Update(window, deltaClock.restart());
 
-        ImGui::ShowDemoWindow();
+        // ImGui::SetNextWindowContentSize(ImVec2(400.f, 400.f));
+        ImGui::Begin("Debug");
+        if (ImGui::Button("Restart"))
+        {
+            cg.reset();
+        }
+        if (GlobalData::getInstance().isFinished == false)
+        {
+            if (ImGui::Button("Stop"))
+            {
+                cg.stop();
+            }
+        }
+        if (GlobalData::getInstance().isFinished)
+        {
+            ImGui::BeginChild("Settings");
 
-        window.clear();
+            ImGui::SliderInt("Segment Limit", &GlobalConfig::getInstance().segLimit, 10, 29999);
+            ImGui::SliderInt("Normal Segment Length", &GlobalConfig::getInstance().normalSegLen, 15.f, 35.f);
+            ImGui::SliderInt("Highway Segment Length", &GlobalConfig::getInstance().highwaySegLen, 25.f, 45.f);
+            ImGui::SliderFloat("Straight Angle Deviation", &GlobalConfig::getInstance().straightAngleDev, 0.f, 0.4f);
+            ImGui::SliderFloat("Branch Angle Deviation", &GlobalConfig::getInstance().branchAngleDev, 0.f, 0.4f);
+            ImGui::SliderFloat("Normal Branch Probability", &GlobalConfig::getInstance().normalBranchProb, 0.1f, 0.9f);
+            ImGui::SliderFloat("Highway Branch Probability", &GlobalConfig::getInstance().highwayBranchProb, 0.0f,
+                               0.3f);
+            ImGui::SliderInt("Normal Segment Delay", &GlobalConfig::getInstance().normalDelay, 0, 10);
+            ImGui::EndChild();
+        }
+        else
+        {
+            ImGui::Text("Settings Disabled");
+        }
+        ImGui::End();
 
-        // renderer.updateData(rn);
-        // renderer.render(window);
-        // window.draw(a);
-        renderer.renderCity(window, cg);
+        window.clear(sf::Color(248, 247, 247));
+        window.setView(camera.getView());
 
+        // renderer.renderCity(window, cg);
+
+        window.setView(window.getDefaultView());
         ImGui::SFML::Render(window);
         window.display();
-    }
 
-    ImGui::SFML::Shutdown();
+        if (GlobalData::getInstance().isFinished)
+        {
+            ImGui::SFML::Shutdown();
+            break;
+        }
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << std::fixed << elapsed.count() << std::endl;
 
     return 0;
 }

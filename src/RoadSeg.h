@@ -29,7 +29,7 @@ class RoadSeg
     void addStNeighbors(std::vector<RoadSeg *> _stNeighbors);
     void addEdNeighbor(RoadSeg *edNeighbor);
     void addEdNeighbors(std::vector<RoadSeg *> _edNeighbors);
-    std::optional<Vec2> intersectWith(const RoadSeg &other);
+    std::optional<Vec2> intersectWith(const RoadSeg &other) const;
     float getDir() const;
     inline float getLen() const
     {
@@ -63,11 +63,11 @@ class RoadSeg
     {
         type = _type;
     }
-    inline std::vector<RoadSeg *> getStNeighbors()
+    inline std::vector<RoadSeg *> getStNeighbors() const
     {
         return stNeighbors;
     }
-    inline std::vector<RoadSeg *> getEdNeighbors()
+    inline std::vector<RoadSeg *> getEdNeighbors() const
     {
         return edNeighbors;
     }
@@ -83,7 +83,7 @@ class RoadSeg
     {
         isSevered = _severed;
     }
-    inline bool getSevered()
+    inline bool getSevered() const
     {
         return isSevered;
     }

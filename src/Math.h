@@ -3,7 +3,7 @@
 #include <cmath>
 #include <random>
 
-const float EPS = 0.0000001;
+const float EPS = 0.000001;
 
 class Vec2;
 
@@ -103,6 +103,11 @@ struct Vec2
     inline bool isEqualApprox(const Vec2 &other) const
     {
         return std::abs(x - other.x) < EPS && std::abs(y - other.y) < EPS;
+    }
+
+    inline Vec2 getNormal() const
+    {
+        return Vec2(-y, x).normalize();
     }
 
     static inline Vec2 fromAngle(float angle)

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RoadVertex.h"
 #include <vector>
 
 class GlobalData
@@ -8,6 +7,7 @@ class GlobalData
   public:
     int m_roadSegs;
     bool isRunning = true;
+    bool isFinished = false;
 
     static GlobalData &getInstance()
     {

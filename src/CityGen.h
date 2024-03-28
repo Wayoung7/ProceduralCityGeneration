@@ -19,19 +19,21 @@ class CityGen
 {
   private:
     std::vector<RoadSeg *> roads;
-    std::list<RoadSeg *> queue;
+    std::list<RoadSeg> queue;
 
   public:
     void init();
     void step();
-    RoadSeg *PopSmallestInQueue();
-    bool localConstrain(RoadSeg *cur);
-    void cutThroughSeg(Vec2 intersection, RoadSeg *cur, RoadSeg *seg);
-    bool handleIntersectionAction(RoadSeg *cur, RoadSeg *otherSeg, Vec2 intersection);
-    bool handleSnapAction(RoadSeg *cur, RoadSeg *otherSeg, Vec2 point);
-    bool handleExtendAction(RoadSeg *cur, RoadSeg *otherSeg, Vec2 intersection);
-    std::vector<RoadSeg *> globalGoal(RoadSeg *cur);
-    void splitThroughSeg(Vec2 intersection, RoadSeg *cur, RoadSeg *seg);
+    void reset();
+    void stop();
+    RoadSeg PopSmallestInQueue();
+    RoadSeg *localConstrain(RoadSeg &cur);
+    // void cutThroughSeg(Vec2 intersection, RoadSeg cur, RoadSeg *seg);
+    RoadSeg *handleIntersectionAction(RoadSeg &cur, RoadSeg *otherSeg, Vec2 intersection);
+    RoadSeg *handleSnapAction(RoadSeg &cur, RoadSeg *otherSeg, Vec2 point);
+    RoadSeg *handleExtendAction(RoadSeg &cur, RoadSeg *otherSeg, Vec2 intersection);
+    std::vector<RoadSeg> globalGoal(RoadSeg *cur);
+    RoadSeg *splitThroughSeg(Vec2 intersection, RoadSeg &cur, RoadSeg *seg);
     inline auto begin() const
     {
         return roads.begin();
