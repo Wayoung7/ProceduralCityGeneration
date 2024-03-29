@@ -17,10 +17,11 @@
 
 int main()
 {
+    auto start = std::chrono::high_resolution_clock::now();
     RNG rng;
     sf::RenderWindow window(
         sf::VideoMode(GlobalConfig::getInstance().windowWidth, GlobalConfig::getInstance().windowHeight),
-        "Procedural City Generation", sf::Style::Default, sf::ContextSettings(0, 0, 8));
+        "Procedural City Generation", sf::Style::Default, sf::ContextSettings(0, 0, 2));
     if (!ImGui::SFML::Init(window))
     {
         std::cerr << "Error: Failed to initialize SFML window" << std::endl;
@@ -33,6 +34,7 @@ int main()
     cg.init();
 
     sf::Clock deltaClock;
+    sf::Clock timer;
     const auto &io = ImGui::GetIO();
     while (window.isOpen() && GlobalData::getInstance().isRunning)
     {
@@ -55,11 +57,7 @@ int main()
             camera.handleMouseDrag(window);
         }
 
-        auto start = std::chrono::high_resolution_clock::now();
         cg.step();
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
-        std::cout << std::fixed << elapsed.count() << std::endl;
 
         ImGui::SFML::Update(window, deltaClock.restart());
 
@@ -97,12 +95,23 @@ int main()
         }
         ImGui::End();
 
-        window.clear(sf::Color(248, 247, 247));
-        window.setView(camera.getView());
+        if (GlobalData::getInstance().isFinished)
+        {
+            window.setView(camera.getView());
+            window.clear(sf::Color(248, 247, 247));
+            renderer.renderCity(window, cg);
+            timer.restart();
+            window.setView(window.getDefaultView());
+        }
+        else if (timer.getElapsedTime().asSeconds() > 0.2)
+        {
+            window.setView(camera.getView());
+            window.clear(sf::Color(248, 247, 247));
+            renderer.renderCity(window, cg);
+            timer.restart();
+            window.setView(window.getDefaultView());
+        }
 
-        // renderer.renderCity(window, cg);
-
-        window.setView(window.getDefaultView());
         ImGui::SFML::Render(window);
         window.display();
 
@@ -112,6 +121,9 @@ int main()
             break;
         }
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << std::fixed << elapsed.count() << std::endl;
 
     return 0;
 }

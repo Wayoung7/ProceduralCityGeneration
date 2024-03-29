@@ -48,7 +48,7 @@ int CityGen::roadsCount() const
 
 void CityGen::init()
 {
-    gridCellWidth = GlobalConfig::getInstance().highwaySegLen * 2;
+    gridCellWidth = GlobalConfig::getInstance().highwaySegLen * 5000;
     const GlobalConfig &cfg = GlobalConfig::getInstance();
     RoadSeg *root = new RoadSeg(Vec2(cfg.windowWidth / 2.f, cfg.windowHeight / 2.f),
                                 Vec2(cfg.windowWidth / 2.f + cfg.highwaySegLen, cfg.windowHeight / 2.f), 0, HighWay);
