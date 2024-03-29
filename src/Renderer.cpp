@@ -51,7 +51,7 @@ void Renderer::updateData(const CityGen &cg)
     }
 }
 
-void Renderer::render(sf::RenderWindow &window)
+void Renderer::render(sf::RenderWindow &window) const
 {
     window.draw(normalRoadVao);
     window.draw(highwayVao);

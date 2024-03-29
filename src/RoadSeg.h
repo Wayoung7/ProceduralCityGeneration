@@ -87,7 +87,7 @@ class RoadSeg
     {
         return isSevered;
     }
-    inline bool stNeighborHas(RoadSeg *input)
+    inline bool stNeighborHas(RoadSeg *input) const
     {
         for (RoadSeg *seg : stNeighbors)
         {
@@ -98,7 +98,7 @@ class RoadSeg
         }
         return false;
     }
-    inline bool edNeighborHas(RoadSeg *input)
+    inline bool edNeighborHas(RoadSeg *input) const
     {
         for (RoadSeg *seg : edNeighbors)
         {

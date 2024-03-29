@@ -1,6 +1,6 @@
 #include "Math.h"
 
-bool segInCircle(Vec2 st, Vec2 ed, Vec2 center, float radius)
+bool segInCircle(const Vec2 &st, const Vec2 &ed, const Vec2 &center, float radius)
 {
     if (distanceFromSegSquared(center, st, ed) < radius * radius)
     {
@@ -12,7 +12,7 @@ bool segInCircle(Vec2 st, Vec2 ed, Vec2 center, float radius)
     }
 }
 
-float distanceFromSegSquared(Vec2 center, Vec2 st, Vec2 ed)
+float distanceFromSegSquared(const Vec2 &center, const Vec2 &st, const Vec2 &ed)
 {
     Vec2 v = ed - st;
     Vec2 w = center - st;
@@ -23,19 +23,19 @@ float distanceFromSegSquared(Vec2 center, Vec2 st, Vec2 ed)
     return center.distanceSquared(st + v * t);
 }
 
-float dotProduct(Vec2 a, Vec2 b)
+float dotProduct(const Vec2 &a, const Vec2 &b)
 {
     return a.x * b.x + a.y * b.y;
 }
 
-bool isPointInSegRange(Vec2 p, Vec2 st, Vec2 ed)
+bool isPointInSegRange(const Vec2 &p, const Vec2 &st, const Vec2 &ed)
 {
     Vec2 v = ed - st;
     float dot = dotProduct(p - st, v);
     return dot >= 0 && dot <= v.lenSquared();
 }
 
-float distanceFromLineSquared(Vec2 center, Vec2 st, Vec2 ed)
+float distanceFromLineSquared(const Vec2 &center, const Vec2 &st, const Vec2 &ed)
 {
     Vec2 v = ed - st;
     Vec2 w = center - st;
@@ -45,7 +45,7 @@ float distanceFromLineSquared(Vec2 center, Vec2 st, Vec2 ed)
     return center.distanceSquared(st + v * t);
 }
 
-Vec2 closePointToLine(Vec2 p, Vec2 st, Vec2 ed)
+Vec2 closePointToLine(const Vec2 &p, const Vec2 &st, const Vec2 &ed)
 {
     Vec2 v = ed - st;
     Vec2 w = p - st;

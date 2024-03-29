@@ -1,12 +1,8 @@
 #pragma once
 
-#include <vector>
-
 class GlobalData
 {
   public:
-    int m_roadSegs;
-    bool isRunning = true;
     bool isFinished = false;
 
     static GlobalData &getInstance()

@@ -2,10 +2,11 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 
-#include <chrono>
 #include <imgui-SFML.h>
 #include <imgui.h>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 #include "Camera.h"
 #include "CityGen.h"
@@ -17,8 +18,6 @@
 
 int main()
 {
-    auto start = std::chrono::high_resolution_clock::now();
-    RNG rng;
     sf::RenderWindow window(
         sf::VideoMode(GlobalConfig::getInstance().windowWidth, GlobalConfig::getInstance().windowHeight),
         "Procedural City Generation", sf::Style::Default, sf::ContextSettings(0, 0, 2));
@@ -36,7 +35,7 @@ int main()
     sf::Clock deltaClock;
     sf::Clock timer;
     const auto &io = ImGui::GetIO();
-    while (window.isOpen() && GlobalData::getInstance().isRunning)
+    while (window.isOpen())
     {
         sf::Event event;
         while (window.pollEvent(event))
@@ -78,7 +77,7 @@ int main()
         {
             ImGui::BeginChild("Settings");
 
-            ImGui::SliderInt("Segment Limit", &GlobalConfig::getInstance().segLimit, 10, 29999);
+            ImGui::SliderInt("Segment Limit", &GlobalConfig::getInstance().segLimit, 10, 100000);
             ImGui::SliderInt("Normal Segment Length", &GlobalConfig::getInstance().normalSegLen, 15.f, 35.f);
             ImGui::SliderInt("Highway Segment Length", &GlobalConfig::getInstance().highwaySegLen, 25.f, 45.f);
             ImGui::SliderFloat("Straight Angle Deviation", &GlobalConfig::getInstance().straightAngleDev, 0.f, 0.4f);
@@ -92,6 +91,8 @@ int main()
         else
         {
             ImGui::Text("Settings Disabled");
+            ImGui::ProgressBar((float)cg.getSegCoung() / (float)GlobalConfig::getInstance().segLimit, ImVec2(300, 20));
+            ImGui::Text("Generating: %d/%d", cg.getSegCoung(), GlobalConfig::getInstance().segLimit);
         }
         ImGui::End();
 
@@ -114,16 +115,7 @@ int main()
 
         ImGui::SFML::Render(window);
         window.display();
-
-        if (GlobalData::getInstance().isFinished)
-        {
-            ImGui::SFML::Shutdown();
-            break;
-        }
     }
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << std::fixed << elapsed.count() << std::endl;
 
     return 0;
 }

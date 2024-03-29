@@ -1,18 +1,17 @@
 #pragma once
 
 #include <cmath>
-#include <random>
 
 const float EPS = 0.000001;
 
-class Vec2;
+struct Vec2;
 
-bool segInCircle(Vec2 st, Vec2 ed, Vec2 center, float radius);
-float distanceFromSegSquared(Vec2 center, Vec2 st, Vec2 ed);
-float dotProduct(Vec2 a, Vec2 b);
-bool isPointInSegRange(Vec2 p, Vec2 st, Vec2 ed);
-float distanceFromLineSquared(Vec2 center, Vec2 st, Vec2 ed);
-Vec2 closePointToLine(Vec2 p, Vec2 st, Vec2 ed);
+bool segInCircle(const Vec2 &st, const Vec2 &ed, const Vec2 &center, float radius);
+float distanceFromSegSquared(const Vec2 &center, const Vec2 &st, const Vec2 &ed);
+float dotProduct(const Vec2 &a, const Vec2 &b);
+bool isPointInSegRange(const Vec2 &p, const Vec2 &st, const Vec2 &ed);
+float distanceFromLineSquared(const Vec2 &center, const Vec2 &st, const Vec2 &ed);
+Vec2 closePointToLine(const Vec2 &p, const Vec2 &st, const Vec2 &ed);
 float angleDiff(float a, float b);
 float dirDiff(float a, float b);
 
@@ -43,24 +42,17 @@ struct Vec2
         return Vec2(this->x - rhs.x, this->y - rhs.y);
     }
 
-    inline Vec2 operator*(const Vec2 &rhs) const
-    {
-        return Vec2(this->x * rhs.x, this->y * rhs.y);
-    }
-
-    inline Vec2 operator*(const float &rhs) const
+    inline Vec2 operator*(float rhs) const
     {
         return Vec2(this->x * rhs, this->y * rhs);
     }
 
-    inline Vec2 operator/(const Vec2 &rhs) const
+    inline Vec2 operator/(float rhs) const
     {
-        return Vec2(this->x / rhs.x, this->y / rhs.y);
-    }
-
-    inline Vec2 operator/(const float &rhs) const
-    {
-        return Vec2(this->x / rhs, this->y / rhs);
+        if (rhs == 0.f)
+            return *this;
+        else
+            return Vec2(this->x / rhs, this->y / rhs);
     }
 
     inline float distance(const Vec2 &rhs) const
@@ -113,26 +105,5 @@ struct Vec2
     static inline Vec2 fromAngle(float angle)
     {
         return Vec2(cosf32(angle), sinf32(angle));
-    }
-
-    static inline Vec2 randFromRange(float st, float ed)
-    {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> dis(st, ed);
-        float angle = dis(gen);
-        return fromAngle(angle);
-    }
-};
-
-class RNG
-{
-  public:
-    static inline float randFloatFromRange(float st, float ed)
-    {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> dis(st, ed);
-        return dis(gen);
     }
 };

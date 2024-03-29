@@ -13,17 +13,6 @@ void Camera::handleMouseDrag(sf::RenderWindow &window)
         view.move(delta / zoom);
     }
     lastMousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-
-    // float zoomAmount = 0.1f;
-    // if (sf::Mouse::isButtonPressed(sf::Mouse::Middle))
-    // {
-    //     zoom += sf::*zoomAmount;
-    //     if (zoom < 0.1f)
-    //     {
-    //         zoom = 0.1f;
-    //     }
-    //     view.setSize(window.getSize().x / zoom, window.getSize().y / zoom);
-    // }
 }
 
 void Camera::handleZoom(sf::RenderWindow &window, sf::Event event)

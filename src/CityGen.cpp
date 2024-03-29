@@ -1,8 +1,9 @@
 #include "CityGen.h"
 #include "GlobalConfig.h"
 #include "GlobalData.h"
-#include <chrono>
-#include <iostream>
+#include "random.hpp"
+
+using Random = effolkronium::random_static;
 
 void CityGen::addRoad(RoadSeg *road)
 {
@@ -48,7 +49,8 @@ int CityGen::roadsCount() const
 
 void CityGen::init()
 {
-    gridCellWidth = GlobalConfig::getInstance().highwaySegLen * 5000;
+    segCount = 1;
+    gridCellWidth = GlobalConfig::getInstance().highwaySegLen * 3;
     const GlobalConfig &cfg = GlobalConfig::getInstance();
     RoadSeg *root = new RoadSeg(Vec2(cfg.windowWidth / 2.f, cfg.windowHeight / 2.f),
                                 Vec2(cfg.windowWidth / 2.f + cfg.highwaySegLen, cfg.windowHeight / 2.f), 0, HighWay);
@@ -61,20 +63,16 @@ void CityGen::init()
     queue.emplace_back(first);
     queue.emplace_back(second);
     addRoad(root);
-    // roads.emplace_back(root);
 }
 
 void CityGen::step()
 {
-    if (GlobalData::getInstance().isFinished == false && roadsCount() < GlobalConfig::getInstance().segLimit &&
+    segCount = roadsCount();
+    if (GlobalData::getInstance().isFinished == false && segCount < GlobalConfig::getInstance().segLimit &&
         queue.empty() == false)
     {
 
         RoadSeg cur = PopSmallestInQueue();
-
-        // std::cout << "(" << cur->getSt().x << ", " << cur->getSt().y << ")"
-        //           << ", "
-        //           << "(" << cur->getEd().x << ", " << cur->getEd().y << ")" << std::endl;
         RoadSeg *newSeg = localConstrain(cur);
 
         if (newSeg)
@@ -101,10 +99,6 @@ void CityGen::reset()
             delete road;
         }
     }
-    // for (RoadSeg *road : roads)
-    // {
-    //     delete road;
-    // }
     roads.clear();
     queue.clear();
     this->init();
@@ -141,7 +135,6 @@ RoadSeg CityGen::PopSmallestInQueue()
             break;
         }
     }
-    // queue.remove(smallest);
     return smallest;
 }
 
@@ -160,11 +153,6 @@ RoadSeg *CityGen::localConstrain(RoadSeg &cur)
     std::vector<RoadSeg *> nearbyRoads = queryNearbyRoads(mid);
     std::vector<RoadSeg *> others = filterRoads(nearbyRoads, [mid, curLen](RoadSeg *seg) -> bool {
         float range = GlobalConfig::getInstance().maxSnapDist + curLen / 2.f;
-        // if (std::abs(seg->getSt().x - mid.x) > range + curLen / 2.f ||
-        //     std::abs(seg->getSt().y - mid.y) > range + curLen / 2.f)
-        // {
-        //     return false;
-        // }
         return segInCircle(seg->getSt(), seg->getEd(), mid, range);
     });
 
@@ -237,42 +225,10 @@ RoadSeg *CityGen::localConstrain(RoadSeg &cur)
     else
     {
         newSeg = new RoadSeg(cur);
-        // roads.push_back(newSeg);
         addRoad(newSeg);
     }
     return newSeg;
 }
-
-// void CityGen::cutThroughSeg(Vec2 intersection, RoadSeg cur, RoadSeg *seg)
-// {
-//     Vec2 st = seg->getSt();
-//     Vec2 ed = seg->getEd();
-//     seg->setSt(intersection);
-//     roads.push_back(seg);
-//     RoadSeg *segRemain = new RoadSeg(st, intersection, 0, seg->getType());
-//     roads.push_back(segRemain);
-//     cur->setEd(intersection);
-//     roads.push_back(cur);
-//     segRemain->addStNeighbors(seg->getStNeighbors());
-//     seg->clearStNeighbors();
-//     seg->addStNeighbor(segRemain);
-//     seg->addStNeighbor(cur);
-//     segRemain->addEdNeighbor(seg);
-//     segRemain->addEdNeighbor(cur);
-//     cur->addEdNeighbor(seg);
-//     cur->addEdNeighbor(segRemain);
-//     if (intersection.distanceSquared(cur->getEd()) > GlobalConfig::getInstance().maxSnapDist + 1.f)
-//     {
-//         RoadSeg *curRemain = new RoadSeg(intersection, cur->getEd(), 0, cur->getType());
-//         segRemain->addEdNeighbor(curRemain);
-//         curRemain->addStNeighbor(cur);
-//         curRemain->addStNeighbor(seg);
-//         curRemain->addStNeighbor(segRemain);
-//         cur->addEdNeighbor(curRemain);
-//         seg->addStNeighbor(curRemain);
-//         roads.push_back(curRemain);
-//     }
-// }
 
 RoadSeg *CityGen::splitThroughSeg(Vec2 intersection, RoadSeg &cur, RoadSeg *seg)
 {
@@ -280,10 +236,7 @@ RoadSeg *CityGen::splitThroughSeg(Vec2 intersection, RoadSeg &cur, RoadSeg *seg)
     Vec2 st = seg->getSt();
     Vec2 ed = seg->getEd();
     seg->setSt(intersection);
-    // roads.push_back(seg);
     RoadSeg *segRemain = new RoadSeg(st, intersection, 0, seg->getType());
-    // roads.push_back(segRemain);
-    // roads.push_back(newSeg);
     addRoad(segRemain);
     addRoad(newSeg);
 
@@ -313,10 +266,6 @@ RoadSeg *CityGen::handleIntersectionAction(RoadSeg &cur, RoadSeg *otherSeg, Vec2
 
 RoadSeg *CityGen::handleSnapAction(RoadSeg &cur, RoadSeg *otherSeg, Vec2 point)
 {
-    // if (otherSeg->edNeighborHas(cur))
-    // {
-    //     return false;
-    // }
     RoadSeg *newSeg = new RoadSeg(cur);
     newSeg->addEdNeighbors(otherSeg->getEdNeighbors());
     newSeg->addEdNeighbor(otherSeg);
@@ -333,7 +282,6 @@ RoadSeg *CityGen::handleSnapAction(RoadSeg &cur, RoadSeg *otherSeg, Vec2 point)
         }
     }
     newSeg->setSevered(true);
-    // roads.push_back(newSeg);
     addRoad(newSeg);
     cur = *newSeg;
     return newSeg;
@@ -348,7 +296,7 @@ RoadSeg *CityGen::handleExtendAction(RoadSeg &cur, RoadSeg *otherSeg, Vec2 inter
     return splitThroughSeg(intersection, cur, otherSeg);
 }
 
-std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur)
+std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur) const
 {
     std::vector<RoadSeg> res;
     if (cur->getSevered())
@@ -359,81 +307,81 @@ std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur)
     if (cur->getType() == HighWay)
     {
         res.push_back(RoadSeg(cur->getEd(),
-                              RNG::randFloatFromRange(cur->getDir() - GlobalConfig::getInstance().straightAngleDev,
-                                                      cur->getDir() + GlobalConfig::getInstance().straightAngleDev),
+                              Random::get<float>(cur->getDir() - GlobalConfig::getInstance().straightAngleDev,
+                                                 cur->getDir() + GlobalConfig::getInstance().straightAngleDev),
                               GlobalConfig::getInstance().highwaySegLen, cur->getT() + 1, HighWay));
     }
     else if (cur->getType() == NormalRoad)
     {
         res.push_back(RoadSeg(cur->getEd(),
-                              RNG::randFloatFromRange(cur->getDir() - GlobalConfig::getInstance().straightAngleDev,
-                                                      cur->getDir() + GlobalConfig::getInstance().straightAngleDev),
+                              Random::get<float>(cur->getDir() - GlobalConfig::getInstance().straightAngleDev,
+                                                 cur->getDir() + GlobalConfig::getInstance().straightAngleDev),
                               GlobalConfig::getInstance().normalSegLen,
                               cur->getT() + 1 + GlobalConfig::getInstance().normalDelay, NormalRoad));
     }
 
     if (cur->getType() == HighWay)
     {
-        if (RNG::randFloatFromRange(0.f, 1.f) < GlobalConfig::getInstance().highwayBranchProb)
+        if (Random::get<bool>(GlobalConfig::getInstance().highwayBranchProb))
         {
-            if (RNG::randFloatFromRange(0.f, 1.f) < 0.3f)
+            if (Random::get<bool>(0.3))
             {
-                res.push_back(RoadSeg(
-                    cur->getEd(),
-                    RNG::randFloatFromRange(cur->getDir() + M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
-                                            cur->getDir() + M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
-                    GlobalConfig::getInstance().highwaySegLen, cur->getT() + 1, HighWay));
+                res.push_back(
+                    RoadSeg(cur->getEd(),
+                            Random::get<float>(cur->getDir() + M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
+                                               cur->getDir() + M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
+                            GlobalConfig::getInstance().highwaySegLen, cur->getT() + 1, HighWay));
             }
             else
             {
-                res.push_back(RoadSeg(
-                    cur->getEd(),
-                    RNG::randFloatFromRange(cur->getDir() + M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
-                                            cur->getDir() + M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
-                    GlobalConfig::getInstance().normalSegLen, cur->getT() + 1 + GlobalConfig::getInstance().normalDelay,
-                    NormalRoad));
+                res.push_back(
+                    RoadSeg(cur->getEd(),
+                            Random::get<float>(cur->getDir() + M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
+                                               cur->getDir() + M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
+                            GlobalConfig::getInstance().normalSegLen,
+                            cur->getT() + 1 + GlobalConfig::getInstance().normalDelay, NormalRoad));
             }
         }
-        if (RNG::randFloatFromRange(0.f, 1.f) < GlobalConfig::getInstance().highwayBranchProb)
+        if (Random::get<bool>(GlobalConfig::getInstance().highwayBranchProb))
         {
-            if (RNG::randFloatFromRange(0.f, 1.f) < 0.3f)
+            if (Random::get<bool>(0.3))
             {
-                res.push_back(RoadSeg(
-                    cur->getEd(),
-                    RNG::randFloatFromRange(cur->getDir() - M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
-                                            cur->getDir() - M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
-                    GlobalConfig::getInstance().highwaySegLen, cur->getT() + 1, HighWay));
+                res.push_back(
+                    RoadSeg(cur->getEd(),
+                            Random::get<float>(cur->getDir() - M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
+                                               cur->getDir() - M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
+                            GlobalConfig::getInstance().highwaySegLen, cur->getT() + 1, HighWay));
             }
             else
             {
-                res.push_back(RoadSeg(
-                    cur->getEd(),
-                    RNG::randFloatFromRange(cur->getDir() - M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
-                                            cur->getDir() - M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
-                    GlobalConfig::getInstance().normalSegLen, cur->getT() + 1 + GlobalConfig::getInstance().normalDelay,
-                    NormalRoad));
+                res.push_back(
+                    RoadSeg(cur->getEd(),
+                            Random::get<float>(cur->getDir() - M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
+                                               cur->getDir() - M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
+                            GlobalConfig::getInstance().normalSegLen,
+                            cur->getT() + 1 + GlobalConfig::getInstance().normalDelay, NormalRoad));
             }
         }
     }
     else if (cur->getType() == NormalRoad)
     {
-        if (RNG::randFloatFromRange(0.f, 1.f) < GlobalConfig::getInstance().normalBranchProb)
+        if (Random::get<bool>(GlobalConfig::getInstance().normalBranchProb))
         {
-            res.push_back(RoadSeg(
-                cur->getEd(),
-                RNG::randFloatFromRange(cur->getDir() + M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
-                                        cur->getDir() + M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
-                GlobalConfig::getInstance().normalSegLen, cur->getT() + 1 + GlobalConfig::getInstance().normalDelay,
-                NormalRoad));
+            res.push_back(
+                RoadSeg(cur->getEd(),
+                        Random::get<float>(cur->getDir() + M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
+                                           cur->getDir() + M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
+                        GlobalConfig::getInstance().normalSegLen,
+                        cur->getT() + 1 + GlobalConfig::getInstance().normalDelay, NormalRoad));
         }
-        if (RNG::randFloatFromRange(0.f, 1.f) < GlobalConfig::getInstance().normalBranchProb)
+        if (Random::get<bool>(GlobalConfig::getInstance().normalBranchProb))
         {
-            res.push_back(RoadSeg(
-                cur->getEd(),
-                RNG::randFloatFromRange(cur->getDir() - M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
-                                        cur->getDir() - M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
-                GlobalConfig::getInstance().normalSegLen, cur->getT() + 1 + GlobalConfig::getInstance().normalDelay,
-                NormalRoad));
+            res.push_back(
+                RoadSeg(cur->getEd(),
+                        Random::get<float>(cur->getDir() - M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
+                                           cur->getDir() - M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
+                        GlobalConfig::getInstance().normalSegLen,
+                        cur->getT() + 1 + GlobalConfig::getInstance().normalDelay, NormalRoad));
         }
     }
     for (RoadSeg seg : res)
@@ -443,7 +391,7 @@ std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur)
     return res;
 }
 
-std::vector<RoadSeg *> CityGen::filterRoads(std::vector<RoadSeg *> src, std::function<bool(RoadSeg *)> func)
+std::vector<RoadSeg *> CityGen::filterRoads(std::vector<RoadSeg *> src, std::function<bool(RoadSeg *)> func) const
 {
     std::vector<RoadSeg *> res;
     for (RoadSeg *seg : src)
@@ -458,10 +406,6 @@ std::vector<RoadSeg *> CityGen::filterRoads(std::vector<RoadSeg *> src, std::fun
 
 CityGen::~CityGen()
 {
-    // for (RoadSeg *seg : roads)
-    // {
-    //     delete seg;
-    // }
     for (auto cell : roads)
     {
         for (RoadSeg *road : cell.second)
@@ -470,11 +414,3 @@ CityGen::~CityGen()
         }
     }
 }
-
-// bool IntersectionAction::apply(RoadSeg *cur)
-// {
-//     if (angleDiff(this->seg->getDir(), cur->getDir()) < GlobalConfig::getInstance().minIntersectionDev)
-//     {
-//         return false;
-//     }
-// }
