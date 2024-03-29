@@ -6,7 +6,7 @@ FetchContent_Declare(
   GIT_TAG 2.6.1
 )
 
-add_subdirectory(sfml)
+add_subdirectory(SFML)
 
 FetchContent_Declare(
   imgui
