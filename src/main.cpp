@@ -96,7 +96,7 @@ int main()
         if (GlobalData::getInstance().isFinished)
         {
             window.setView(camera.getView());
-            window.clear(sf::Color(248, 247, 247));
+            window.clear(sf::Color(231, 231, 231));
             renderer.renderCity(window, cg);
             timer.restart();
             window.setView(window.getDefaultView());
