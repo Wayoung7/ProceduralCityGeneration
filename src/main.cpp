@@ -5,8 +5,6 @@
 #include <imgui-SFML.h>
 #include <imgui.h>
 #include <iostream>
-#include <sstream>
-#include <string>
 
 #include "Camera.h"
 #include "CityGen.h"
@@ -60,7 +58,6 @@ int main()
 
         ImGui::SFML::Update(window, deltaClock.restart());
 
-        // ImGui::SetNextWindowContentSize(ImVec2(400.f, 400.f));
         ImGui::Begin("Debug");
         if (ImGui::Button("Restart"))
         {
@@ -107,7 +104,7 @@ int main()
         else if (timer.getElapsedTime().asSeconds() > 0.2)
         {
             window.setView(camera.getView());
-            window.clear(sf::Color(248, 247, 247));
+            window.clear(sf::Color(231, 231, 231));
             renderer.renderCity(window, cg);
             timer.restart();
             window.setView(window.getDefaultView());

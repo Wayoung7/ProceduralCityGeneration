@@ -38,7 +38,7 @@ class GlobalConfig
   private:
     GlobalConfig()
         : segLimit(100000), windowWidth(1920), windowHeight(1080), normalSegLen(29), highwaySegLen(39),
-          branchAngleDev(0.11f), straightAngleDev(0.15f), normalBranchProb(0.35f), highwayBranchProb(0.06f),
+          branchAngleDev(0.11f), straightAngleDev(0.15f), normalBranchProb(0.35f), highwayBranchProb(0.05f),
           maxSnapDist(4), minIntersectionDev(0.55f), normalDelay(4)
     {
     }

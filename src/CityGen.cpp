@@ -324,7 +324,7 @@ std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur) const
     {
         if (Random::get<bool>(GlobalConfig::getInstance().highwayBranchProb))
         {
-            if (Random::get<bool>(0.3))
+            if (Random::get<bool>(0.25))
             {
                 res.push_back(
                     RoadSeg(cur->getEd(),
@@ -344,7 +344,7 @@ std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur) const
         }
         if (Random::get<bool>(GlobalConfig::getInstance().highwayBranchProb))
         {
-            if (Random::get<bool>(0.3))
+            if (Random::get<bool>(0.25))
             {
                 res.push_back(
                     RoadSeg(cur->getEd(),

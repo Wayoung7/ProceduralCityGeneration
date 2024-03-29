@@ -5,8 +5,8 @@
 class Renderer
 {
   private:
-    sf::VertexArray normalRoadVao;
     sf::VertexArray highwayVao;
+    sf::VertexArray normalRoadVao;
 
     void addLine(Vec2 st, Vec2 ed, sf::Color color);
     void addTri(Vec2 a, Vec2 b, Vec2 c, sf::Color color);

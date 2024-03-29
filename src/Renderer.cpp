@@ -1,6 +1,6 @@
 #include "Renderer.h"
 
-Renderer::Renderer() : normalRoadVao(sf::VertexArray(sf::Lines)), highwayVao(sf::VertexArray(sf::Triangles))
+Renderer::Renderer() : highwayVao(sf::VertexArray(sf::Triangles)), normalRoadVao(sf::VertexArray(sf::Lines))
 {
 }
 
@@ -33,15 +33,15 @@ void Renderer::renderCity(sf::RenderWindow &window, const CityGen &cg)
 
 void Renderer::updateData(const CityGen &cg)
 {
-    normalRoadVao.clear();
     highwayVao.clear();
+    normalRoadVao.clear();
     for (const auto &cell : cg)
     {
         for (const auto &r : cell.second)
         {
-            if (r->getType() == NormalRoad)
+            if (r->getType() == HighWay)
             {
-                addRect(r->getSt(), r->getEd(), 2.f, sf::Color(185, 197, 211));
+                addRect(r->getSt(), r->getEd(), 5.f, sf::Color(9, 21, 39));
             }
             else
             {
