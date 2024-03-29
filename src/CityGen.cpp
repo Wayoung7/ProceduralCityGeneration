@@ -317,7 +317,7 @@ std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur) const
                               Random::get<float>(cur->getDir() - GlobalConfig::getInstance().straightAngleDev,
                                                  cur->getDir() + GlobalConfig::getInstance().straightAngleDev),
                               GlobalConfig::getInstance().normalSegLen,
-                              cur->getT() + 1 + GlobalConfig::getInstance().normalDelay, NormalRoad));
+                              cur->getT() + Random::get(1, 3) + GlobalConfig::getInstance().normalDelay, NormalRoad));
     }
 
     if (cur->getType() == HighWay)
@@ -372,7 +372,7 @@ std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur) const
                         Random::get<float>(cur->getDir() + M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
                                            cur->getDir() + M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
                         GlobalConfig::getInstance().normalSegLen,
-                        cur->getT() + 1 + GlobalConfig::getInstance().normalDelay, NormalRoad));
+                        cur->getT() + Random::get(1, 2) + GlobalConfig::getInstance().normalDelay, NormalRoad));
         }
         if (Random::get<bool>(GlobalConfig::getInstance().normalBranchProb))
         {
@@ -381,7 +381,7 @@ std::vector<RoadSeg> CityGen::globalGoal(RoadSeg *cur) const
                         Random::get<float>(cur->getDir() - M_PI / 2.f - GlobalConfig::getInstance().branchAngleDev,
                                            cur->getDir() - M_PI / 2.f + GlobalConfig::getInstance().branchAngleDev),
                         GlobalConfig::getInstance().normalSegLen,
-                        cur->getT() + 1 + GlobalConfig::getInstance().normalDelay, NormalRoad));
+                        cur->getT() + Random::get(1, 2) + GlobalConfig::getInstance().normalDelay, NormalRoad));
         }
     }
     for (RoadSeg seg : res)
